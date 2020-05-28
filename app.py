@@ -75,15 +75,34 @@ def get_categories():
 @app.route("/edit_category/<category_id>")
 def edit_category(category_id):
     return render_template("editcategory.html",
-                           category=mongo.db.find_one({"_id": ObjectId(category_id)}))
+                           category=mongo.db.categories.find_one({"_id": ObjectId(category_id)}))
 
 
-@app.route("/update_category/<category_id>", methods=["POST"])
+@app.route("/update_category/<category_id>", methods=["POST"])  # Edit a category
 def update_category(category_id):
     mongo.db.categories.update(
         {"_id": ObjectId(category_id)},
         {"category_name": request.form.get("category_name")})
     return redirect(url_for("get_categories"))
+
+
+@app.route("/delete_category/<category_id>")  # Delete a category
+def delete_category(category_id):
+    mongo.db.categories.remove({"_id": ObjectId(category_id)})
+    return redirect(url_for("get_categories"))
+
+
+@app.route("/insert_category/", methods={"POST"})  # Create a new category
+def insert_category():
+    categories = mongo.db.categories
+    category_doc = {"category_name": request.form.get("category_name")}
+    categories.insert_one(category_doc)
+    return redirect(url_for("get_categories"))
+
+
+@app.route("/add_category")
+def add_category():
+    return render_template("addcategory.html")
 
 
 if __name__ == "__main__":
