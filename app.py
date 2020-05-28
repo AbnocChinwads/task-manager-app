@@ -13,8 +13,10 @@ app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 
 mongo = PyMongo(app)
 
+# Tasks
 
-@app.route("/")
+
+@app.route("/")  # Display main task page
 @app.route("/get_tasks")
 def get_tasks():
     return render_template("tasks.html",
@@ -27,14 +29,14 @@ def add_task():
                            categories=mongo.db.categories.find())
 
 
-@app.route("/insert_task", methods=["POST"])
+@app.route("/insert_task", methods=["POST"])  # Add a task to the database
 def insert_task():
     tasks = mongo.db.tasks
     tasks.insert_one(request.form.to_dict())
     return redirect(url_for("get_tasks"))
 
 
-@app.route("/edit_task/<task_id>")
+@app.route("/edit_task/<task_id>")  # Edit a task on the database
 def edit_task(task_id):
     the_task = mongo.db.tasks.find_one({"_id": ObjectId(task_id)})
     all_categories = mongo.db.categories.find()
@@ -56,10 +58,32 @@ def update_task(task_id):
     return redirect(url_for("get_tasks"))
 
 
-@app.route("/delete_task/<task_id>")
+@app.route("/delete_task/<task_id>")  # Delete a task from the database
 def delete_task(task_id):
     mongo.db.tasks.remove({"_id": ObjectId(task_id)})
     return redirect(url_for("get_tasks"))
+
+# Categories
+
+
+@app.route("/get_categories")  # Display a list of the categories
+def get_categories():
+    return render_template("categories.html",
+                           categories=mongo.db.categories.find())
+
+
+@app.route("/edit_category/<category_id>")
+def edit_category(category_id):
+    return render_template("editcategory.html",
+                           category=mongo.db.find_one({"_id": ObjectId(category_id)}))
+
+
+@app.route("/update_category/<category_id>", methods=["POST"])
+def update_category(category_id):
+    mongo.db.categories.update(
+        {"_id": ObjectId(category_id)},
+        {"category_name": request.form.get("category_name")})
+    return redirect(url_for("get_categories"))
 
 
 if __name__ == "__main__":
